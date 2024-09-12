@@ -118,13 +118,13 @@ int main()
 		}
 
 		// Checks for winner
-		if (playerPoints == 3)
+		if (playerPoints == 3) // Modify this value to change win requirement
 		{
 			std::cout << "Player wins!\n";
 			if (!playAgain())
 				break;
 		}
-		else if (computerPoints == 3)
+		else if (computerPoints == 3) // Modify this value to change win requirement
 		{
 			std::cout << "Computer wins!\n";
 			if (!playAgain())
