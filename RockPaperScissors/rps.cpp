@@ -98,11 +98,11 @@ bool playAgain()
 int main()
 {
 	std::cout << "Rock, Paper, Scissors!\n";
+	int playerPoints{ 0 };
+	int computerPoints{ 0 };
 
 	while (true)
 	{
-		int playerPoints{ 0 };
-		int computerPoints{ 0 };
 		int userChoice{ getUserChoice() };
 		int computerChoice{ getComputerChoice() };
 
@@ -125,15 +125,19 @@ int main()
 		std::cout << "Player: " << playerPoints << "\nComputer: " << computerPoints << "\n";
 
 		// Checks for winner
-		if (playerPoints == 1) // Modify to change win condition
+		if (playerPoints == 3) // Modify to change the win condition
 		{
 			std::cout << "Player wins!\n";
+			playerPoints = 0;
+			computerPoints = 0;
 			if (!playAgain())
 				break;
 		}
-		else if (computerPoints == 1) // Modify to change win condition
+		else if (computerPoints == 3) // Modify to change the win condition
 		{
 			std::cout << "Computer wins!\n";
+			playerPoints = 0;
+			computerPoints = 0;
 			if (!playAgain())
 				break;
 		}
