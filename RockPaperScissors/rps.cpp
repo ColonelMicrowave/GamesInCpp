@@ -9,15 +9,27 @@ int getComputerChoice()
 
 int getUserChoice()
 {
-	std::cout << "1) Rock\n";
-	std::cout << "2) Paper\n";
-	std::cout << "3) Scissors\n";
-	std::cout << "Enter your choice: ";
+	while (true)
+	{
+		std::cout << "1) Rock\n";
+		std::cout << "2) Paper\n";
+		std::cout << "3) Scissors\n";
+		std::cout << "Enter your choice: ";
 
-	int choice{ };
-	std::cin >> choice;
+		int choice{ };
+		std::cin >> choice;
 
-	return choice;
+		if (choice == 1 || choice == 2 || choice == 3)
+		{
+			return choice;
+		}
+		else
+		{
+			std::cout << "Invalid choice. Please try again.\n";
+			std::cin.clear(); // Clear any error flags
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
+		}
+	}
 }
 
 int determineWinner(int userChoice, int computerChoice)
