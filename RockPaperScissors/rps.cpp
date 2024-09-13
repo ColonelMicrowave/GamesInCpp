@@ -8,7 +8,7 @@ int getComputerChoice()
 
 int getUserChoice()
 {
-	std::cout << "\n1) Rock\n";
+	std::cout << "1) Rock\n";
 	std::cout << "2) Paper\n";
 	std::cout << "3) Scissors\n";
 	std::cout << "Enter your choice: ";
@@ -75,16 +75,19 @@ bool playAgain()
 	if (choice == 'y')
 	{
 		std::cout << "\n";
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
 		return true;
 	}
 	else if (choice == 'n')
 	{
 		std::cout << "\nThanks for playing!\n";
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
 		return false;
 	}
 	else
 	{
 		std::cout << "Invalid choice. Please try again.\n";
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
 		playAgain();
 	}
 }
@@ -93,11 +96,10 @@ int main()
 {
 	std::cout << "Rock, Paper, Scissors!\n";
 
-	int playerPoints{ 0 };
-	int computerPoints{ 0 };
-
 	while (true)
 	{
+		int playerPoints{ 0 };
+		int computerPoints{ 0 };
 		int userChoice{ getUserChoice() };
 		int computerChoice{ getComputerChoice() };
 
@@ -117,20 +119,20 @@ int main()
 			;  // Terminate the statement with a semicolon (Tie)
 		}
 
+		std::cout << "Player: " << playerPoints << "\nComputer: " << computerPoints << "\n";
+
 		// Checks for winner
-		if (playerPoints == 3) // Modify this value to change win requirement
+		if (playerPoints == 1)
 		{
 			std::cout << "Player wins!\n";
 			if (!playAgain())
 				break;
 		}
-		else if (computerPoints == 3) // Modify this value to change win requirement
+		else if (computerPoints == 1)
 		{
 			std::cout << "Computer wins!\n";
 			if (!playAgain())
 				break;
 		}
-
-		std::cout << "Player: " << playerPoints << "\nComputer: " << computerPoints << "\n";
 	}
 }
