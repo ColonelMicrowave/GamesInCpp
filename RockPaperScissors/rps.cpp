@@ -68,27 +68,29 @@ int determineWinner(int userChoice, int computerChoice)
 
 bool playAgain()
 {
-	std::cout << "Do you want to play again? (y/n): ";
-	char choice{ };
-	std::cin >> choice;
+	while (true)
+	{
+		std::cout << "Do you want to play again? (y/n): ";
+		char choice{ };
+		std::cin >> choice;
 
-	if (choice == 'y')
-	{
-		std::cout << "\n";
-		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
-		return true;
-	}
-	else if (choice == 'n')
-	{
-		std::cout << "\nThanks for playing!\n";
-		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
-		return false;
-	}
-	else
-	{
-		std::cout << "Invalid choice. Please try again.\n";
-		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
-		playAgain();
+		if (choice == 'y')
+		{
+			std::cout << "\n";
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
+			return true;
+		}
+		else if (choice == 'n')
+		{
+			std::cout << "\nThanks for playing!\n";
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
+			return false;
+		}
+		else
+		{
+			std::cout << "Invalid choice. Please try again.\n";
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
+		}
 	}
 }
 
@@ -122,13 +124,13 @@ int main()
 		std::cout << "Player: " << playerPoints << "\nComputer: " << computerPoints << "\n";
 
 		// Checks for winner
-		if (playerPoints == 1) // Modify this value to change win condition
+		if (playerPoints == 1) // Modify to change win condition
 		{
 			std::cout << "Player wins!\n";
 			if (!playAgain())
 				break;
 		}
-		else if (computerPoints == 1) // Modify this value to change win condition
+		else if (computerPoints == 1) // Modify to change win condition
 		{
 			std::cout << "Computer wins!\n";
 			if (!playAgain())
