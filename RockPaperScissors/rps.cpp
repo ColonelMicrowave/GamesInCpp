@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 #include "random.h"
 
 int getComputerChoice()
