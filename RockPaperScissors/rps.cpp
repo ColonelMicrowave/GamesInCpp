@@ -122,13 +122,13 @@ int main()
 		std::cout << "Player: " << playerPoints << "\nComputer: " << computerPoints << "\n";
 
 		// Checks for winner
-		if (playerPoints == 1)
+		if (playerPoints == 1) // Modify this value to change win condition
 		{
 			std::cout << "Player wins!\n";
 			if (!playAgain())
 				break;
 		}
-		else if (computerPoints == 1)
+		else if (computerPoints == 1) // Modify this value to change win condition
 		{
 			std::cout << "Computer wins!\n";
 			if (!playAgain())
