@@ -21,6 +21,7 @@ int getUserChoice()
 
 		if (choice == 1 || choice == 2 || choice == 3)
 		{
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
 			return choice;
 		}
 		else
@@ -44,32 +45,32 @@ int determineWinner(int userChoice, int computerChoice)
 	else if (userChoice == 1 && computerChoice == 3)
 	{
 		std::cout << "\nRock beats Scissors. You win!\n";
-		points++;
+		++points;
 	}
 	else if (userChoice == 2 && computerChoice == 1)
 	{
 		std::cout << "\nPaper beats Rock. You win!\n";
-		points++;
+		++points;
 	}
 	else if (userChoice == 3 && computerChoice == 2)
 	{
 		std::cout << "\nScissors beats Paper. You win!\n";
-		points++;
+		++points;
 	}
 	else if (userChoice == 3 && computerChoice == 1)
 	{
 		std::cout << "\nRock beats Scissors. You lose!\n";
-		points--;
+		--points;
 	}
 	else if (userChoice == 1 && computerChoice == 2)
 	{
 		std::cout << "\nPaper beats Rock. You lose!\n";
-		points--;
+		--points;
 	}
 	else if (userChoice == 2 && computerChoice == 3)
 	{
 		std::cout << "\nScissors beats Paper. You lose!\n";
-		points--;
+		--points;
 	}
 	else
 	{
@@ -137,7 +138,7 @@ int main()
 		std::cout << "Player: " << playerPoints << "\nComputer: " << computerPoints << "\n";
 
 		// Checks for winner
-		if (playerPoints == 3) // Modify to change the win condition
+		if (playerPoints == 10) // Modify to change the win condition
 		{
 			std::cout << "Player wins!\n";
 			playerPoints = 0;
@@ -145,7 +146,7 @@ int main()
 			if (!playAgain())
 				break;
 		}
-		else if (computerPoints == 3) // Modify to change the win condition
+		else if (computerPoints == 10) // Modify to change the win condition
 		{
 			std::cout << "Computer wins!\n";
 			playerPoints = 0;
