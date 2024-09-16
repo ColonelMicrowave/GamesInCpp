@@ -1,5 +1,3 @@
-#include <iostream>
-#include <limits>
 #include "random.h"
 
 // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); is used to clear the input buffer.
@@ -10,13 +8,13 @@ int getRand(int min, int max)
 	return Random::get(min, max);
 }
 
-int getMin()
+int getMinMax(std::string_view minOrMax)
 {
 	while (true)
 	{
-		std::cout << "Enter the minimum value: ";
-		int min{};
-		std::cin >> min;
+		std::cout << "Enter the " << minOrMax << " value: ";
+		int value{};
+		std::cin >> value;
 
 		if (std::cin.fail())
 		{
@@ -26,28 +24,7 @@ int getMin()
 		else
 		{
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-			return min;
-		}
-	}
-}
-
-int getMax()
-{
-	while (true)
-	{
-		std::cout << "Enter the maximum value: ";
-		int max{};
-		std::cin >> max;
-
-		if (std::cin.fail())
-		{
-			std::cin.clear();
-			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-		}
-		else
-		{
-			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-			return max;
+			return value;
 		}
 	}
 }
@@ -129,8 +106,8 @@ int main()
 	{
 		std::cout << "Welcome to Hi-Lo!\n";
 
-		int min{ getMin() };
-		int max{ getMax() };
+		int min{ getMinMax("minimum")};
+		int max{ getMinMax("maximum")};
 		int maxGuesses{ getMaxGuesses() };
 
 		if (min > max)
