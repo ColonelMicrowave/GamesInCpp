@@ -5,8 +5,6 @@
 #include "random.h"
 #include "wordList.h"
 
-using namespace WordList;
-
 // Helper function to ignore the rest of the line after a failed input
 void ignoreLine()
 {
