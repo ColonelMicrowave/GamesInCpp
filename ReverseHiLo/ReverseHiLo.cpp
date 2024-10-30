@@ -77,11 +77,11 @@ int getUserResponse(int guess)
 		ignoreLine();
 		std::cout << "\n";
 
-		if (response == '1')
+		if (response == 1)
 			return 1;
-		if (response == '2')
+		if (response == 2)
 			return 2;
-		if (response == '3')
+		if (response == 3)
 			return 3;
 		
 		std::cout << "Invalid input. Please try again.\n";
@@ -149,12 +149,12 @@ int main()
 	std::cout << "Welcome to the Hi-Lo game!\n";
 	std::cout << "In this game, I have to try and guess your number.\n";
 
-	auto [low, high] { getRange() }; // Structured binding
-
-	std::cout << "Now think of a number between " << low << " and " << high << ".\n\n";
-
 	do
 	{
+		auto [low, high] { getRange() }; // Structured binding
+
+		std::cout << "Now think of a number between " << low << " and " << high << ".\n\n";
+
 		playGame(low, high);
 	} while (playAgain());
 }
