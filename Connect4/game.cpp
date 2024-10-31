@@ -232,7 +232,8 @@ void playGame(bool aiEnabled = false, bool aiVsAi = false, bool isPlayerOne = tr
 
 		if (aiEnabled && aiVsAi)
 		{
-			//AI vs AI
+			// AI vs AI
+			// humanPlayer is used as a placeholder for AI Player 2
 			move = game.getAIMove(aiPlayer, humanPlayer);
 			game.makeMove(move, aiPlayer);
 			std::cout << "AI plays in column " << move + 1 << "\n";
