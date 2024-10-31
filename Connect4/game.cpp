@@ -8,8 +8,18 @@ namespace Config
 	const int ROWS{ 6 };
 	const int COLS{ 7 };
 	const char EMPTY{ '.' };
-	const char PLAYER1{ 'X' };
-	const char PLAYER2{ 'O' };
+	const char PLAYER1{ 'O' };
+	const char PLAYER2{ 'X' };
+}
+
+void setColour(int colour)
+{
+	std::cout << "\033[" << colour << "m";
+}
+
+void resetColour()
+{
+	std::cout << "\033[0m";
 }
 
 class Connect4
@@ -34,7 +44,23 @@ public:
 		{
 			std::cout << "| ";
 			for (char cell : row)
-				std::cout << cell << " ";
+			{
+				if (cell == Config::PLAYER1)
+				{
+					setColour(31);
+					std::cout << cell << " ";
+				}
+				else if (cell == Config::PLAYER2)
+				{
+					setColour(33);
+					std::cout << cell << " ";
+				}
+				else
+				{
+					std::cout << cell << " ";
+				}
+				resetColour();
+			}
 			std::cout << "|\n";
 		}
 		std::cout << "  ";
@@ -239,14 +265,18 @@ void playGame(bool aiEnabled = false, bool isPlayerOne = true)
 		if (game.checkWin(currentPlayer))
 		{
 			game.displayBoard();
+			setColour(currentPlayer == Config::PLAYER1 ? 31 : 33);
 			std::cout << "Player " << currentPlayer << " wins!\n";
+			resetColour();
 			break;
 		}
 
 		if (game.isBoardFull())
 		{
 			game.displayBoard();
+			setColour(34);
 			std::cout << "It's a tie! The board is full.\n";
+			resetColour();
 			break;
 		}
 
