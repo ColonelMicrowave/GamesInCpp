@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <utility>
 #include <limits>
 #include "random.h"
 
@@ -8,8 +9,8 @@ namespace Config
 	const int ROWS{ 6 };
 	const int COLS{ 7 };
 	const char EMPTY{ '.' };
-	const char PLAYER1{ 'O' };
-	const char PLAYER2{ 'X' };
+	const char PLAYER1{ 'X' };
+	const char PLAYER2{ 'O' };
 }
 
 void setColour(int colour)
@@ -217,23 +218,31 @@ void ignoreLine()
 	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-void playGame(bool aiEnabled = false, bool isPlayerOne = true)
+void playGame(bool aiEnabled = false, bool aiVsAi = false, bool isPlayerOne = true)
 {
 	Connect4 game{};
-	char humanPlayer  { isPlayerOne ? Config::PLAYER1 : Config::PLAYER2 };
-	char aiPlayer     { isPlayerOne ? Config::PLAYER2 : Config::PLAYER1 };
 	char currentPlayer{ Config::PLAYER1 };
+	char aiPlayer     { isPlayerOne ? Config::PLAYER2 : Config::PLAYER1 };
+	char humanPlayer  { isPlayerOne ? Config::PLAYER1 : Config::PLAYER2 };
 	int move{};
 
 	while (true)
 	{
 		game.displayBoard();
 
-		if (aiEnabled && currentPlayer == aiPlayer)
+		if (aiEnabled && aiVsAi)
+		{
+			//AI vs AI
+			move = game.getAIMove(aiPlayer, humanPlayer);
+			game.makeMove(move, aiPlayer);
+			std::cout << "AI plays in column " << move + 1 << "\n";
+			std::swap(aiPlayer, humanPlayer);
+		}
+		else if (aiEnabled && currentPlayer == aiPlayer)
 		{
 			// AI's turn
-			move = game.getAIMove(Config::PLAYER2, Config::PLAYER1);
-			game.makeMove(move, Config::PLAYER2);
+			move = game.getAIMove(aiPlayer, humanPlayer);
+			game.makeMove(move, aiPlayer);
 			std::cout << "AI plays in column " << move + 1 << "\n";
 		}
 		else
@@ -311,6 +320,33 @@ bool isAIEnabled()
 	}
 }
 
+bool isAIvsAI()
+{
+	while (true)
+	{
+		std::cout << "Do you want to watch AI vs AI? (y/n): ";
+		char choice{};
+		std::cin >> choice;
+
+		if (std::cin.fail())
+		{
+			std::cin.clear();
+			ignoreLine();
+			std::cout << "Invalid input. Please try again.\n";
+			continue;
+		}
+
+		ignoreLine();
+
+		if (choice == 'y' || choice == 'Y')
+			return true;
+		else if (choice == 'n' || choice == 'N')
+			return false;
+		else
+			std::cout << "Invalid input. Please try again.\n";
+	}
+}
+
 bool isPlayerOne()
 {
 	while (true)
@@ -340,15 +376,14 @@ bool isPlayerOne()
 
 int main()
 {
-	bool aiEnabled{ isAIEnabled() };
-
-	if (!aiEnabled)
-		playGame();
+	if (!isAIEnabled())
+		playGame(); // Human vs Human
 	else
 	{
-		bool playerOne{ isPlayerOne() };
-		playGame(aiEnabled, playerOne);
+		if (isAIvsAI())
+			playGame(true, true); // AI vs AI
+		else
+			playGame(true, false, isPlayerOne()); // AI vs Human
 	}
-
 	return 0;
 }
