@@ -185,12 +185,12 @@ public:
 				++humanCount;
 		}
 
-		if (aiCount == 4) score += 1000000;
+		if (aiCount == 4) score += 1000001;
 		else if (humanCount == 4) score -= 1000000;
-		else if (aiCount == 3 && emptyCount == 1) score += 5;
+		else if (aiCount == 3 && emptyCount == 1) score += 4;
 		else if (aiCount == 2 && emptyCount == 2) score += 2;
-		else if (humanCount == 3 && emptyCount == 1) score -= 4;
-		else if (humanCount == 2 && emptyCount == 2) score -= 1;
+		else if (humanCount == 3 && emptyCount == 1) score -= 5;
+		else if (humanCount == 2 && emptyCount == 2) score -= 3;
 
 		return score;
 	}
@@ -380,8 +380,9 @@ public:
 
 		int depth // Tweak values if AI too slow
 		{ 
-			(filledCells < 2)  ? 8 :
-			(filledCells < 7)  ? 10 :
+			(filledCells < 2)  ? 7 :
+			(filledCells < 7)  ? 9 :
+			(filledCells < 10) ? 10 :
 			(filledCells < 12) ? 12 :
 			(filledCells < 16) ? 14 :
 			(filledCells < 22) ? 18 : 26
@@ -398,7 +399,6 @@ public:
 				bestMove = col;
 			}
 		}
-		std::cout << "Depth: " << depth << "\n";
 		return bestMove;
 	}
 };
