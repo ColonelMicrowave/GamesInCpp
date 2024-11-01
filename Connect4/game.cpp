@@ -187,10 +187,10 @@ public:
 
 		if (aiCount == 4) score += 1000001;
 		else if (humanCount == 4) score -= 1000000;
-		else if (aiCount == 3 && emptyCount == 1) score += 4;
-		else if (aiCount == 2 && emptyCount == 2) score += 2;
-		else if (humanCount == 3 && emptyCount == 1) score -= 5;
-		else if (humanCount == 2 && emptyCount == 2) score -= 3;
+		else if (aiCount == 3 && emptyCount == 1) score += 6;
+		else if (aiCount == 2 && emptyCount == 2) score += 3;
+		else if (humanCount == 3 && emptyCount == 1) score -= 8;
+		else if (humanCount == 2 && emptyCount == 2) score -= 5;
 
 		return score;
 	}
