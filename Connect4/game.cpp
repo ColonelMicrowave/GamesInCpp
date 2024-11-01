@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <limits>
 #include "random.h"
 
@@ -172,43 +173,185 @@ public:
 		return true;
 	}
 
-	int getAIMove(char aiPlayer, char opponent)
+	int evaluationWindow(const std::vector<char>& window, char aiPlayer, char humanPlayer) const
 	{
-		// Check for winning move
-		for (int col{ 0 }; col < Config::COLS; ++col)
+		int score{ 0 };
+		int aiCount{ 0 };
+		int humanCount{ 0 };
+		int emptyCount{ 0 };
+
+		for (char cell : window)
 		{
-			if (makeMove(col, aiPlayer))
+			if (cell == Config::EMPTY)
+				++emptyCount;
+			else if (cell == aiPlayer)
+				++aiCount;
+			else if (cell == humanPlayer)
+				++humanCount;
+		}
+
+		if (aiCount == 4) score += 100;
+		else if (aiCount == 3 && emptyCount == 1) score += 5;
+		else if (aiCount == 2 && emptyCount == 2) score += 2;
+		if (humanCount == 3 && emptyCount == 1) score -= 4;
+
+		return score;
+	}
+
+	int evaluateBoard(char aiPlayer, char humanPlayer) const
+	{
+		int score{ 0 };
+
+		// Score center column
+		for (int row{ 0 }; row < Config::ROWS; ++row)
+			if (board[row][Config::COLS / 2] != Config::EMPTY)
+				score += 3;
+
+		// Score horizontal
+		for (int row{ 0 }; row < Config::ROWS; ++row)
+		{
+			for (int col{ 0 }; col < Config::COLS - 3; ++col)
 			{
-				if (checkWin(aiPlayer))
-				{
-					undoMove(col); // Undo the move after checking
-					return col;
-				}
-				undoMove(col); // Undo the move after checking
+				std::vector<char> window{};
+				for (int i{ 0 }; i < 4; ++i)
+					window.push_back(board[row][col + i]);
+				score += evaluationWindow(window, aiPlayer, humanPlayer);
 			}
 		}
 
-		// Check for opponent winning move and block it
-		for (int col{ 0 }; col < Config::COLS; ++col)
+		// Score vertical
+		for (int row{ 0 }; row < Config::ROWS - 3; ++row)
 		{
-			if (makeMove(col, opponent))
+			for (int col{ 0 }; col < Config::COLS; ++col)
 			{
-				if (checkWin(opponent))
-				{
-					undoMove(col); // Undo the move after checking
-					return col;
-				}
-				undoMove(col); // Undo the move after checking
+				std::vector<char> window{};
+				for (int i{ 0 }; i < 4; ++i)
+					window.push_back(board[row + i][col]);
+				score += evaluationWindow(window, aiPlayer, humanPlayer);
 			}
 		}
 
-		// Choose a random move if no winning move is found
-		int col{};
-		do
+		// Score diagonal (bottom left to top right)
+		for (int row{ 3 }; row < Config::ROWS; ++row)
 		{
-			col = Random::get(0, Config::COLS - 1);
-		} while (!makeMove(col, Config::EMPTY)); // Keep generating random moves until a valid move is found
-		return col;
+			for (int col{ 0 }; col < Config::COLS - 3; ++col)
+			{
+				std::vector<char> window{};
+				for (int i{ 0 }; i < 4; ++i)
+					window.push_back(board[row - i][col + i]);
+				score += evaluationWindow(window, aiPlayer, humanPlayer);
+			}
+		}
+
+		// Score diagonal (top left to bottom right)
+		for (int row{ 0 }; row < Config::ROWS - 3; ++row)
+		{
+			for (int col{ 0 }; col < Config::COLS - 3; ++col)
+			{
+				std::vector<char> window{};
+				for (int i{ 0 }; i < 4; ++i)
+					window.push_back(board[row + i][col + i]);
+				score += evaluationWindow(window, aiPlayer, humanPlayer);
+			}
+		}
+		return score;
+	}
+
+	std::vector<int> getValidMoves() const
+	{
+		std::vector<int> validMoves{};
+		for (int col{ 0 }; col < Config::COLS; ++col)
+			if (board[0][col] == Config::EMPTY)
+				validMoves.push_back(col);
+		return validMoves;
+	}
+
+	std::vector<int> getOrderedMoves(char aiPlayer, char humanPlayer)
+	{
+		std::vector<int> validMoves{ getValidMoves() };
+
+		// Score each move for ordering (preferring centre columns)
+		std::vector<std::pair<int, int>> scoredMoves{};
+		for (int col : validMoves)
+		{
+			makeMove(col, aiPlayer);
+			int moveScore{ evaluateBoard(aiPlayer, humanPlayer) };
+			undoMove(col);
+
+			// Centre moves get higher initial score
+			int centreBias{ Config::COLS / 2 - abs(col - Config::COLS / 2) };
+			moveScore += centreBias;
+			scoredMoves.push_back({ moveScore, col });
+		}
+
+		// Sort moves by score in descending order
+		std::sort(scoredMoves.begin(), scoredMoves.end(), std::greater<>());
+
+		// Extract ordered moves
+		std::vector<int> orderedMoves{};
+		for (const auto& move : scoredMoves)
+			orderedMoves.push_back(move.second);
+
+		return orderedMoves;
+	}
+
+	int minimax(int depth, int alpha, int beta, bool maximisingPlayer, char aiPlayer, char humanPlayer)
+	{
+		if (checkWin(aiPlayer))
+			return 1000000;
+		if (checkWin(humanPlayer))
+			return -1000000;
+		if (isBoardFull() || depth == 0)
+			return evaluateBoard(aiPlayer, humanPlayer);
+
+		if (maximisingPlayer)
+		{
+			int maxEval = -std::numeric_limits<int>::max();
+			for (int col : getOrderedMoves(aiPlayer, humanPlayer))
+			{
+				makeMove(col, aiPlayer);
+				int eval = minimax(depth - 1, alpha, beta, false, aiPlayer, humanPlayer);
+				undoMove(col);
+				maxEval = std::max(maxEval, eval);
+				alpha = std::max(alpha, eval);
+				if (beta <= alpha)
+					break;
+			}
+			return maxEval;
+		}
+		else
+		{
+			int minEval = std::numeric_limits<int>::max();
+			for (int col : getOrderedMoves(aiPlayer, humanPlayer))
+			{
+				makeMove(col, humanPlayer);
+				int eval = minimax(depth - 1, alpha, beta, true, aiPlayer, humanPlayer);
+				undoMove(col);
+				minEval = std::min(minEval, eval);
+				beta = std::min(beta, eval);
+				if (beta <= alpha)
+					break;
+			}
+			return minEval;
+		}
+	}
+
+	int getAIMove(char aiPlayer, char humanPlayer)
+	{
+		int bestMove{};
+		int bestScore = -std::numeric_limits<int>::max();
+		for (int col : getValidMoves())
+		{
+			makeMove(col, aiPlayer);
+			int score = minimax(5, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), false, aiPlayer, humanPlayer);
+			undoMove(col);
+			if (score > bestScore)
+			{
+				bestScore = score;
+				bestMove = col;
+			}
+		}
+		return bestMove;
 	}
 };
 
@@ -217,7 +360,7 @@ void ignoreLine()
 	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-void playGame(bool aiEnabled = false, bool aiVsAi = false, bool isPlayerOne = true)
+void playGame(bool aiEnabled = false, bool isPlayerOne = true)
 {
 	Connect4 game{};
 	char currentPlayer{ Config::PLAYER1 };
@@ -229,25 +372,7 @@ void playGame(bool aiEnabled = false, bool aiVsAi = false, bool isPlayerOne = tr
 	{
 		game.displayBoard();
 
-		if (aiEnabled && aiVsAi)
-		{
-			// AI vs AI
-			if (currentPlayer == aiPlayer)
-			{
-				// aiPlayer is AI Player 1
-				move = game.getAIMove(aiPlayer, humanPlayer);
-				game.makeMove(move, aiPlayer);
-				std::cout << "AI plays in column " << move + 1 << "\n";
-			}
-			else
-			{
-				// humanPlayer is AI Player 2
-				move = game.getAIMove(humanPlayer, aiPlayer);
-				game.makeMove(move, humanPlayer);
-				std::cout << "AI plays in column " << move + 1 << "\n";
-			}
-		}
-		else if (aiEnabled && currentPlayer == aiPlayer)
+		if (aiEnabled && currentPlayer == aiPlayer)
 		{
 			// AI's turn
 			move = game.getAIMove(aiPlayer, humanPlayer);
@@ -263,7 +388,7 @@ void playGame(bool aiEnabled = false, bool aiVsAi = false, bool isPlayerOne = tr
 				std::cout << "Player " << currentPlayer << ", enter your move (1-7): ";
 				std::cin >> move;
 
-				if (std::cin.fail())
+				if (std::cin.fail() || move < 1 || move > 7)
 				{
 					std::cin.clear();
 					ignoreLine();
@@ -329,33 +454,6 @@ bool isAIEnabled()
 	}
 }
 
-bool isAIvsAI()
-{
-	while (true)
-	{
-		std::cout << "Do you want to watch AI vs AI? (y/n): ";
-		char choice{};
-		std::cin >> choice;
-
-		if (std::cin.fail())
-		{
-			std::cin.clear();
-			ignoreLine();
-			std::cout << "Invalid input. Please try again.\n";
-			continue;
-		}
-
-		ignoreLine();
-
-		if (choice == 'y' || choice == 'Y')
-			return true;
-		else if (choice == 'n' || choice == 'N')
-			return false;
-		else
-			std::cout << "Invalid input. Please try again.\n";
-	}
-}
-
 bool isPlayerOne()
 {
 	while (true)
@@ -389,10 +487,10 @@ int main()
 		playGame(); // Human vs Human
 	else
 	{
-		if (isAIvsAI())
-			playGame(true, true); // AI vs AI
+		if (isPlayerOne())
+			playGame(true, true); // Human vs AI
 		else
-			playGame(true, false, isPlayerOne()); // AI vs Human
+			playGame(true, false); // AI vs Human
 	}
 	return 0;
 }
