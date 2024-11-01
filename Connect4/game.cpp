@@ -185,10 +185,12 @@ public:
 				++humanCount;
 		}
 
-		if (aiCount == 4) score += 100;
+		if (aiCount == 4) score += 1000000;
+		else if (humanCount == 4) score -= 1000000;
 		else if (aiCount == 3 && emptyCount == 1) score += 5;
 		else if (aiCount == 2 && emptyCount == 2) score += 2;
-		if (humanCount == 3 && emptyCount == 1) score -= 4;
+		else if (humanCount == 3 && emptyCount == 1) score -= 4;
+		else if (humanCount == 2 && emptyCount == 2) score -= 1;
 
 		return score;
 	}
@@ -199,8 +201,12 @@ public:
 
 		// Score center column
 		for (int row{ 0 }; row < Config::ROWS; ++row)
-			if (board[row][Config::COLS / 2] != Config::EMPTY)
+		{
+			if (board[row][Config::COLS / 2] == aiPlayer)
 				score += 3;
+			else if (board[row][Config::COLS / 2] == humanPlayer)
+				score -= 3;
+		}
 
 		// Score horizontal
 		for (int row{ 0 }; row < Config::ROWS; ++row)
@@ -264,25 +270,35 @@ public:
 	std::vector<int> getOrderedMoves(char aiPlayer, char humanPlayer)
 	{
 		std::vector<int> validMoves{ getValidMoves() };
+		std::vector<int> safeMoves{};
 
-		// Score each move for ordering (preferring centre columns)
-		std::vector<std::pair<int, int>> scoredMoves{};
 		for (int col : validMoves)
+		{
+			makeMove(col, humanPlayer);
+			if (checkWin(humanPlayer))
+			{
+				undoMove(col);
+				continue;
+			}
+			undoMove(col);
+
+			safeMoves.push_back(col);
+		}
+
+		std::vector<std::pair<int, int>> scoredMoves{};
+		for (int col : safeMoves)
 		{
 			makeMove(col, aiPlayer);
 			int moveScore{ evaluateBoard(aiPlayer, humanPlayer) };
 			undoMove(col);
 
-			// Centre moves get higher initial score
 			int centreBias{ Config::COLS / 2 - abs(col - Config::COLS / 2) };
 			moveScore += centreBias;
 			scoredMoves.push_back({ moveScore, col });
 		}
 
-		// Sort moves by score in descending order
 		std::sort(scoredMoves.begin(), scoredMoves.end(), std::greater<>());
 
-		// Extract ordered moves
 		std::vector<int> orderedMoves{};
 		for (const auto& move : scoredMoves)
 			orderedMoves.push_back(move.second);
@@ -296,18 +312,15 @@ public:
 		uint64_t hash{ Transposition::computeHash(board) };
 		int score{};
 
-		if (Transposition::lookup(hash, score, alpha, beta, depth))
-			return score;
-
-		if (checkWin(aiPlayer))
-		{
-			score = 1000000;
-			Transposition::store(hash, score, Transposition::ScoreType::Exact, depth);
-			return score;
-		}
 		if (checkWin(humanPlayer))
 		{
 			score = -1000000;
+			Transposition::store(hash, score, Transposition::ScoreType::Exact, depth);
+			return score;
+		}
+		if (checkWin(aiPlayer))
+		{
+			score = 1000000;
 			Transposition::store(hash, score, Transposition::ScoreType::Exact, depth);
 			return score;
 		}
@@ -318,9 +331,14 @@ public:
 			return score;
 		}
 
+		if (Transposition::lookup(hash, score, alpha, beta, depth))
+		{
+			return score;
+		}
+
 		if (maximisingPlayer)
 		{
-			int maxEval = -std::numeric_limits<int>::max();
+			int maxEval = std::numeric_limits<int>::min();
 			for (int col : getOrderedMoves(aiPlayer, humanPlayer))
 			{
 				makeMove(col, aiPlayer);
@@ -361,7 +379,7 @@ public:
 	int getAIMove(char aiPlayer, char humanPlayer)
 	{
 		int bestMove{};
-		int bestScore = -std::numeric_limits<int>::max();
+		int bestScore = std::numeric_limits<int>::min();
 
 		// Dynamic depth based on number of filled cells
 		int filledCells{ 0 };
@@ -370,26 +388,29 @@ public:
 				if (cell != Config::EMPTY)
 					++filledCells;
 
-		int depth // Tweak values if AI is too slow
+		int depth // Tweak values if AI too slow
 		{ 
-			(filledCells < 2) ? 7 : // Opening
-			(filledCells < 7) ? 9 : // Early-game
-			(filledCells < 12) ? 10 : // Early-game
-			(filledCells < 16) ? 11 : // Mid-game
-			(filledCells < 18) ? 12 : // Mid-game
-			(filledCells < 22) ? 15 : 25 // End-game
+			(filledCells < 2) ? 6 :
+			(filledCells < 7) ? 8 :
+			(filledCells < 12) ? 10 :
+			(filledCells < 16) ? 11 :
+			(filledCells < 18) ? 12 :
+			(filledCells < 22) ? 15 : 25
 		};
-		for (int col : getValidMoves())
+		for (int col : getOrderedMoves(aiPlayer, humanPlayer))
 		{
 			makeMove(col, aiPlayer);
-			int score = minimax(depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), false, aiPlayer, humanPlayer);
+			int score = minimax(depth, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), false, aiPlayer, humanPlayer);
 			undoMove(col);
+
 			if (score > bestScore)
 			{
 				bestScore = score;
 				bestMove = col;
 			}
 		}
+		std::cout << "Best score: " << bestScore<< "\n";
+		std::cout << "Depth: " << depth << "\n";
 		return bestMove;
 	}
 };
