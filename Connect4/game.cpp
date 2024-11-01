@@ -380,12 +380,11 @@ public:
 
 		int depth // Tweak values if AI too slow
 		{ 
-			(filledCells < 2) ? 6 :
-			(filledCells < 7) ? 8 :
-			(filledCells < 12) ? 10 :
-			(filledCells < 16) ? 11 :
-			(filledCells < 18) ? 12 :
-			(filledCells < 22) ? 15 : 25
+			(filledCells < 2)  ? 8 :
+			(filledCells < 7)  ? 10 :
+			(filledCells < 12) ? 12 :
+			(filledCells < 16) ? 14 :
+			(filledCells < 22) ? 18 : 26
 		};
 		for (int col : getOrderedMoves(aiPlayer, humanPlayer))
 		{
@@ -399,7 +398,6 @@ public:
 				bestMove = col;
 			}
 		}
-		std::cout << "Best score: " << bestScore<< "\n";
 		std::cout << "Depth: " << depth << "\n";
 		return bestMove;
 	}
@@ -427,7 +425,9 @@ void playGame(bool aiEnabled = false, bool isPlayerOne = true)
 			// AI's turn
 			move = game.getAIMove(aiPlayer, humanPlayer);
 			game.makeMove(move, aiPlayer);
+			setColour(35);
 			std::cout << "AI plays in column " << move + 1 << "\n";
+			resetColour();
 		}
 		else
 		{
