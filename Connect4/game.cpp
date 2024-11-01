@@ -1,17 +1,11 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cstdint>
 #include <limits>
 #include "random.h"
-
-namespace Config
-{
-	const int ROWS{ 6 };
-	const int COLS{ 7 };
-	const char EMPTY{ '.' };
-	const char PLAYER1{ 'X' };
-	const char PLAYER2{ 'O' };
-}
+#include "transposition.h"
+#include "config.h"
 
 void setColour(int colour)
 {
@@ -31,6 +25,7 @@ private:
 public:
 	Connect4()
 	{
+		Transposition::initialiseZobrist();
 		board = std::vector<std::vector<char>>(Config::ROWS, std::vector<char>(Config::COLS, Config::EMPTY));
 	}
 
@@ -297,12 +292,31 @@ public:
 
 	int minimax(int depth, int alpha, int beta, bool maximisingPlayer, char aiPlayer, char humanPlayer)
 	{
+		// Transposition table lookup
+		uint64_t hash{ Transposition::computeHash(board) };
+		int score{};
+
+		if (Transposition::lookup(hash, score, alpha, beta, depth))
+			return score;
+
 		if (checkWin(aiPlayer))
-			return 1000000;
+		{
+			score = 1000000;
+			Transposition::store(hash, score, Transposition::ScoreType::Exact, depth);
+			return score;
+		}
 		if (checkWin(humanPlayer))
-			return -1000000;
+		{
+			score = -1000000;
+			Transposition::store(hash, score, Transposition::ScoreType::Exact, depth);
+			return score;
+		}
 		if (isBoardFull() || depth == 0)
-			return evaluateBoard(aiPlayer, humanPlayer);
+		{
+			score = evaluateBoard(aiPlayer, humanPlayer);
+			Transposition::store(hash, score, Transposition::ScoreType::Exact, depth);
+			return score;
+		}
 
 		if (maximisingPlayer)
 		{
@@ -317,6 +331,10 @@ public:
 				if (beta <= alpha)
 					break;
 			}
+			if (alpha >= beta)
+				Transposition::store(hash, maxEval, Transposition::ScoreType::LowerBound, depth);
+			else
+				Transposition::store(hash, maxEval, Transposition::ScoreType::Exact, depth);
 			return maxEval;
 		}
 		else
@@ -332,6 +350,10 @@ public:
 				if (beta <= alpha)
 					break;
 			}
+			if (alpha >= beta)
+				Transposition::store(hash, minEval, Transposition::ScoreType::UpperBound, depth);
+			else
+				Transposition::store(hash, minEval, Transposition::ScoreType::Exact, depth);
 			return minEval;
 		}
 	}
@@ -340,10 +362,27 @@ public:
 	{
 		int bestMove{};
 		int bestScore = -std::numeric_limits<int>::max();
+
+		// Dynamic depth based on number of filled cells
+		int filledCells{ 0 };
+		for (const auto& row : board)
+			for (char cell : row)
+				if (cell != Config::EMPTY)
+					++filledCells;
+
+		int depth // Tweak values if AI is too slow
+		{ 
+			(filledCells < 2) ? 7 : // Opening
+			(filledCells < 7) ? 9 : // Early-game
+			(filledCells < 12) ? 10 : // Early-game
+			(filledCells < 16) ? 11 : // Mid-game
+			(filledCells < 18) ? 12 : // Mid-game
+			(filledCells < 22) ? 15 : 25 // End-game
+		};
 		for (int col : getValidMoves())
 		{
 			makeMove(col, aiPlayer);
-			int score = minimax(5, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), false, aiPlayer, humanPlayer);
+			int score = minimax(depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), false, aiPlayer, humanPlayer);
 			undoMove(col);
 			if (score > bestScore)
 			{
