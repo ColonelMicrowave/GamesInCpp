@@ -15,8 +15,6 @@ namespace Transposition
 {
 	void initialiseZobrist()
 	{
-		Random::get(0, std::numeric_limits<uint64_t>::max());
-
 		zobristTable.resize(2, std::vector<uint64_t>(Config::ROWS * Config::COLS));
 		for (int player{ 0 }; player < 2; ++player)
 		{
