@@ -270,35 +270,25 @@ public:
 	std::vector<int> getOrderedMoves(char aiPlayer, char humanPlayer)
 	{
 		std::vector<int> validMoves{ getValidMoves() };
-		std::vector<int> safeMoves{};
 
-		for (int col : validMoves)
-		{
-			makeMove(col, humanPlayer);
-			if (checkWin(humanPlayer))
-			{
-				undoMove(col);
-				continue;
-			}
-			undoMove(col);
-
-			safeMoves.push_back(col);
-		}
-
+		// Score each move for ordering (preferring centre columns)
 		std::vector<std::pair<int, int>> scoredMoves{};
-		for (int col : safeMoves)
+		for (int col : validMoves)
 		{
 			makeMove(col, aiPlayer);
 			int moveScore{ evaluateBoard(aiPlayer, humanPlayer) };
 			undoMove(col);
 
+			// Centre moves get higher initial score
 			int centreBias{ Config::COLS / 2 - abs(col - Config::COLS / 2) };
 			moveScore += centreBias;
 			scoredMoves.push_back({ moveScore, col });
 		}
 
+		// Sort moves by score in descending order
 		std::sort(scoredMoves.begin(), scoredMoves.end(), std::greater<>());
 
+		// Extract ordered moves
 		std::vector<int> orderedMoves{};
 		for (const auto& move : scoredMoves)
 			orderedMoves.push_back(move.second);
