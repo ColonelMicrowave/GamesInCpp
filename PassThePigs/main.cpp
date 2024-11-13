@@ -16,7 +16,7 @@ void ignoreLine() // Helper function
 	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-constexpr std::string_view getPigStateNames(PigState state)
+constexpr std::string_view getPigStateNames(PigState state) // Helper function
 {
 	switch (state)
 	{
