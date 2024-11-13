@@ -2,6 +2,7 @@
 #include <string>
 #include <limits>
 #include <array>
+#include <algorithm>
 #include "random.h"
 
 class PigState
