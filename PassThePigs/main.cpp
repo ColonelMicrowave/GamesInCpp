@@ -1,14 +1,86 @@
 #include <iostream>
 #include <string>
 #include <limits>
+#include <array>
 #include "random.h"
 
-enum class PigState
+class PigState
 {
-	sider,
-	trotter,
-	doubleTrotter,
-	pigOut,
+public:
+	enum state
+	{
+		sider,
+		trotter,
+		doubleTrotter,
+		snouter,
+		doubleSnouter,
+		razorback,
+		doubleRazorback,
+		pigOut,
+		maxStates
+	};
+
+	PigState() = default;
+
+	constexpr std::string_view getPigStateNames(state pigState) // Helper function
+	{
+		switch (pigState)
+		{
+		case sider:           return "Sider";
+		case trotter:         return "Trotter";
+		case doubleTrotter:   return "Double Trotter";
+		case snouter:         return "Snouter";
+		case doubleSnouter:   return "Double Snouter";
+		case razorback:       return "Razorback";
+		case doubleRazorback: return "Double Razorback";
+		case pigOut:          return "Pig Out";
+		default:              return "Unknown";
+		}
+	}
+
+	state getPigStates()
+	{
+		int pigA{ Random::get(1, 20) };
+		int pigB{ Random::get(1, 20) };
+
+		// Check for sider
+		if (isInArray(m_leftSide, pigA) && isInArray(m_leftSide, pigB))
+			return sider;
+		else if (isInArray(m_rightSide, pigA) && isInArray(m_rightSide, pigB))
+			return sider;
+
+		// Check for double states
+		else if (isInArray(m_trotter, pigA) && isInArray(m_trotter, pigB))
+			return doubleTrotter;
+		else if (isInArray(m_razorback, pigA) && isInArray(m_razorback, pigB))
+			return doubleRazorback;
+		else if (isInArray(m_snouter, pigA) && isInArray(m_snouter, pigB))
+			return doubleSnouter;
+
+		// Check for single states
+		else if (isInArray(m_trotter, pigA) || isInArray(m_trotter, pigB))
+			return trotter;
+		else if (isInArray(m_razorback, pigA) || isInArray(m_razorback, pigB))
+			return razorback;
+		else if (isInArray(m_snouter, pigA) || isInArray(m_snouter, pigB))
+			return snouter;
+		
+		else
+			return pigOut;
+	}
+
+private:
+	constexpr static std::array<int, 5> m_rightSide{ 1, 2, 3, 4, 5 };
+	constexpr static std::array<int, 5> m_leftSide{ 1, 2, 3, 4, 5 };
+	constexpr static std::array<int, 4> m_trotter{ 11, 12, 13, 14 };
+	constexpr static std::array<int, 4> m_razorback{ 15, 16, 17, 18 };
+	constexpr static std::array<int, 2> m_snouter{ 19, 20 };
+
+	template <std::size_t N>
+	bool isInArray(const std::array<int, N>& arr, int value) const // Helper function
+	{
+		return std::find(arr.begin(), arr.end(), value) != arr.end();
+	}
 };
 
 void ignoreLine() // Helper function
@@ -16,57 +88,35 @@ void ignoreLine() // Helper function
 	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-constexpr std::string_view getPigStateNames(PigState state) // Helper function
+void setColour(int colour) // Helper function
 {
-	switch (state)
-	{
-	case PigState::sider:
-		return "Sider";
-	case PigState::trotter:
-		return "Trotter";
-	case PigState::doubleTrotter:
-		return "Double Trotter";
-	case PigState::pigOut:
-		return "Pig Out";
-	default:
-		return "Unknown";
-	}
+	std::cout << "\033[" << colour << "m";
 }
 
-int getScore(PigState state)
+void resetColour() // Helper function
+{
+	std::cout << "\033[0m";
+}
+
+int getScore(PigState::state state)
 {
 	switch (state)
 	{
-	case PigState::sider:         return 1;
-	case PigState::trotter:       return 5;
-	case PigState::doubleTrotter: return 20;
-	case PigState::pigOut:        return 0;
+	case PigState::sider:           return 1;
+
+	case PigState::trotter:
+	case PigState::snouter:
+	case PigState::razorback:       return 5;
+
+	case PigState::doubleTrotter:
+	case PigState::doubleSnouter:
+	case PigState::doubleRazorback: return 20;
+
+	case PigState::pigOut:          return 0;
+
 	default:
 		std::cout << "Error: Invalid PigState\n";
 		return 0;
-	}
-}
-
-PigState getPigStates()
-{
-	int pigA{ Random::get(1, 3) };
-	int pigB{ Random::get(1, 3) };
-
-	if (pigA == 1 && pigB == 1 || pigA == 2 && pigB == 2)
-	{
-		return PigState::sider;
-	}
-	else if (pigA == 3 && pigB == 3)
-	{
-		return PigState::doubleTrotter;
-	}
-	else if (pigA == 3 || pigB == 3)
-	{
-		return PigState::trotter;
-	}
-	else
-	{
-		return PigState::pigOut;
 	}
 }
 
@@ -92,16 +142,17 @@ bool getRoll()
 
 void playGame()
 {
+	PigState pigStates{};
 	int playerScore{ 0 };
 
 	while (playerScore < 100)
 	{
 		if (getRoll())
 		{
-			PigState state{ getPigStates() };
-			std::cout << "You rolled a " << getPigStateNames(state) << "!\n";
+			PigState::state pigState{ pigStates.getPigStates() };
+			std::cout << "You rolled a " << pigStates.getPigStateNames(pigState) << "!\n";
 
-			int score{ getScore(state) };
+			int score{ getScore(pigState) };
 
 			if (score == 0)
 			{
@@ -117,11 +168,16 @@ void playGame()
 			std::cout << "\tYour score is: " << playerScore << '\n';
 		}
 	}
+
+	setColour(32);
+	std::cout << "\n\tCongratulations! You won!\n";
+	resetColour();
 }
 
 int main()
 {
 	std::cout << "Welcome to Pass the Pigs!\n";
+
 	playGame();
 
 	return 0;
