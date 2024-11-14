@@ -78,7 +78,7 @@ private:
 	constexpr static std::array<int, 2> m_snouter{ 19, 20 };
 
 	template <std::size_t N>
-	bool isInArray(const std::array<int, N>& arr, int value) const // Helper function
+	bool isInArray(const std::array<int, N>& arr, int value) const
 	{
 		return std::find(arr.begin(), arr.end(), value) != arr.end();
 	}
@@ -116,7 +116,7 @@ int getScore(PigState::state state)
 	case PigState::pigOut:          return 0;
 
 	default:
-		std::cout << "Error: Invalid PigState\n";
+		std::cout << "Error: Invalid Pig State\n";
 		return 0;
 	}
 }
@@ -136,43 +136,124 @@ bool getRoll()
 		}
 		else
 		{
+			std::cout << "Invalid input. Try again.";
 			ignoreLine();
 		}
 	}
 }
 
+bool isPlayerBanking(bool isPlayerTwo, int& score, std::array<int, 2>& arr)
+{
+	while (true)
+	{
+		std::cout << "\nWould you like to bank? (y/n): ";
+		char choice{};
+		std::cin >> choice;
+
+		if (std::cin.fail())
+		{
+			std::cin.clear();
+			ignoreLine();
+			std::cout << "Invalid input. Try again.\n";
+		}
+
+		ignoreLine();
+
+		if (choice == 'y')
+		{
+			arr[isPlayerTwo] += score;
+			score = 0;
+			return true;
+		}
+		else if (choice == 'n')
+		{
+			return false;
+		}
+		else
+		{
+			std::cout << "Invalid input. Try again.\n";
+		}
+	}
+}
+
+bool hasPlayerWon(std::array<int, 2> playerScores)
+{
+	if (playerScores[0] >= 100)
+	{
+		setColour(32);
+		std::cout << "\n\tPlayer One has won!\n";
+		resetColour();
+		return true;
+	}
+	else if (playerScores[1] >= 100)
+	{
+		setColour(32);
+		std::cout << "\n\tPlayer Two has won!\n";
+		resetColour();
+		return true;
+	}
+
+	return false;
+}
+
 void playGame()
 {
 	PigState pigStates{};
-	int playerScore{ 0 };
+	bool isPlayerTwo{ false };
+	int currentPlayerScore{ 0 };
+	std::array<int, 2> playerBankedScores{ 0, 0 };
 
-	while (playerScore < 100)
+	while (!hasPlayerWon(playerBankedScores))
 	{
+		setColour(35);
+		std::cout << "\n\tPlayer One's Score: " << playerBankedScores[0] << '\n';
+		std::cout << "\tPlayer Two's Score: "   << playerBankedScores[1] << "\n\n";
+		resetColour();
+
+		setColour(36);
+		std::cout << "Player " << (isPlayerTwo ? "Two" : "One") << " Turn\n";
+		resetColour();
+
 		if (getRoll())
 		{
 			PigState::state pigState{ pigStates.getPigStates() };
+
+			setColour(33);
 			std::cout << "You rolled a " << pigStates.getPigStateNames(pigState) << "!\n";
+			resetColour();
 
 			int score{ getScore(pigState) };
 
 			if (score == 0)
 			{
-				playerScore = 0;
-				std::cout << "Your score is now 0.";
+				currentPlayerScore = 0;
+
+				setColour(31);
+				std::cout << "Your score is now 0. Your turn is over.\n\n";
+				resetColour();
+
+				isPlayerTwo = !isPlayerTwo; // Switch players
+				continue;
 			}
 			else
 			{
-				playerScore += score;
+				currentPlayerScore += score;
+
+				setColour(32);
 				std::cout << "You gained " << score << " points!";
+				resetColour();
 			}
 
-			std::cout << "\tYour score is: " << playerScore << '\n';
+			setColour(36);
+			std::cout << "\tYour total score is: " << currentPlayerScore << '\n';
+			resetColour();
+		}
+
+		if (isPlayerBanking(isPlayerTwo, currentPlayerScore, playerBankedScores))
+		{
+			isPlayerTwo = !isPlayerTwo; // Switch players
 		}
 	}
-
-	setColour(32);
-	std::cout << "\n\tCongratulations! You won!\n";
-	resetColour();
 }
 
 int main()
