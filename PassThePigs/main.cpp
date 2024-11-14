@@ -84,7 +84,7 @@ public:
 
 		case doubleLeaningJowler: return 60;
 
-		case oinker:        [[fallthrough]];
+		case oinker:              return 0;
 		case pigOut:              return 0;
 
 		default:
@@ -95,7 +95,8 @@ public:
 
 	state getPigStates()
 	{
-		int roll{ Random::get(1, 22) };
+		int roll{ Random::get(1, 10) };
+		std::cout << "Roll: " << roll << '\n';
 
 		// Check for sider
 		if (isInArray(m_leftSide, roll))
@@ -112,9 +113,8 @@ public:
 			return snouter;
 		else if (isInArray(m_leaningJowler, roll))
 			return leaningJowler;
-		
-		else
-			return pigOut;
+		else if (isInArray(m_oinker, roll))
+			return oinker;
 	}
 
 	int interpretRolls(state pigA, state pigB)
@@ -183,7 +183,7 @@ public:
 		}
 		else
 		{
-			if (pigA == pigOut || pigB == pigOut)
+			if ((pigA == leftsider && pigB == rightsider) || (pigA == rightsider && pigB == leftsider))
 			{
 				setColour(31);
 				std::cout << "You rolled a " << getPigStateNames(pigOut) << "!\n";
@@ -194,7 +194,7 @@ public:
 			}
 			else
 			{
-				if (pigA != leftsider && pigA != rightsider)
+				if (pigA != leftsider && pigA != rightsider && pigA != oinker)
 				{
 					setColour(33);
 					std::cout << "You rolled a " << getPigStateNames(pigA) << "!\n";
@@ -202,7 +202,7 @@ public:
 
 					score += getScore(pigA);
 				}
-				if (pigB != leftsider && pigB != rightsider)
+				if (pigB != leftsider && pigB != rightsider && pigB != oinker)
 				{
 					setColour(33);
 					std::cout << "You rolled a " << getPigStateNames(pigB) << "!\n";
@@ -334,13 +334,15 @@ void playGame()
 
 			if (score == 0)
 			{
-				if (pigA == PigState::pigOut || pigB == PigState::pigOut)
+				if ((pigA == PigState::leftsider && pigB == PigState::rightsider) || (pigA == PigState::rightsider && pigB == PigState::leftsider))
 				{
 					setColour(31);
 					std::cout << "Your score is now 0. Your turn is over.\n\n";
 					resetColour();
 
 					currentPlayerScore = 0;
+					isPlayerTwo = !isPlayerTwo; // Switch players
+					continue;
 				}
 				else if (pigA == PigState::oinker && pigB == PigState::oinker)
 				{
@@ -350,10 +352,9 @@ void playGame()
 
 					playerBankedScores[isPlayerTwo] = 0;
 					currentPlayerScore = 0;
+					isPlayerTwo = !isPlayerTwo; // Switch players
+					continue;
 				}
-
-				isPlayerTwo = !isPlayerTwo; // Switch players
-				continue;
 			}
 			else
 			{
