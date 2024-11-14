@@ -72,7 +72,7 @@ public:
 
 private:
 	constexpr static std::array<int, 5> m_rightSide{ 1, 2, 3, 4, 5 };
-	constexpr static std::array<int, 5> m_leftSide{ 1, 2, 3, 4, 5 };
+	constexpr static std::array<int, 5> m_leftSide{ 6, 7, 8, 9, 10 };
 	constexpr static std::array<int, 4> m_trotter{ 11, 12, 13, 14 };
 	constexpr static std::array<int, 4> m_razorback{ 15, 16, 17, 18 };
 	constexpr static std::array<int, 2> m_snouter{ 19, 20 };
