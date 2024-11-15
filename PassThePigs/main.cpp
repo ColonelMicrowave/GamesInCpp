@@ -95,7 +95,7 @@ public:
 
 	state getPigStates()
 	{
-		int roll{ Random::get(1, 10) };
+		int roll{ Random::get(1, 22) };
 
 		// Check for sider
 		if (isInArray(m_leftSide, roll))
