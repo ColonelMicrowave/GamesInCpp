@@ -84,7 +84,7 @@ public:
 
 		case doubleLeaningJowler: return 60;
 
-		case oinker:        [[fallthrough]]
+		case oinker:        [[fallthrough]];
 		case pigOut:              return 0;
 
 		default:
