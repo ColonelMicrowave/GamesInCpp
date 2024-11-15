@@ -84,7 +84,7 @@ public:
 
 		case doubleLeaningJowler: return 60;
 
-		case oinker:              return 0;
+		case oinker:        [[fallthrough]]
 		case pigOut:              return 0;
 
 		default:
@@ -96,7 +96,6 @@ public:
 	state getPigStates()
 	{
 		int roll{ Random::get(1, 10) };
-		std::cout << "Roll: " << roll << '\n';
 
 		// Check for sider
 		if (isInArray(m_leftSide, roll))
