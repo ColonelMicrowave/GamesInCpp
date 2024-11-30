@@ -201,13 +201,19 @@ public:
 
 					score += getScore(pigA);
 				}
-				if (pigB != leftsider && pigB != rightsider && pigB != oinker)
+				else if (pigB != leftsider && pigB != rightsider && pigB != oinker)
 				{
 					setColour(33);
 					std::cout << "You rolled a " << getPigStateNames(pigB) << "!\n";
 					resetColour();
 
 					score += getScore(pigB);
+				}
+				else
+				{
+					setColour(33);
+					std::cout << "You rolled nothing!\n";
+					resetColour();
 				}
 
 				return score;
@@ -269,13 +275,13 @@ bool isPlayerBanking(bool isPlayerTwo, int& score, std::array<int, 2>& arr)
 
 		ignoreLine();
 
-		if (choice == 'y')
+		if (choice == 'y' || choice == 'Y')
 		{
 			arr[isPlayerTwo] += score;
 			score = 0;
 			return true;
 		}
-		else if (choice == 'n')
+		else if (choice == 'n' || choice == 'N')
 		{
 			return false;
 		}
@@ -354,6 +360,12 @@ void playGame()
 					isPlayerTwo = !isPlayerTwo; // Switch players
 					continue;
 				}
+				else
+				{
+					setColour(32);
+					std::cout << "You gained " << score << " points!";
+					resetColour();
+				}
 			}
 			else
 			{
@@ -374,6 +386,12 @@ void playGame()
 			isPlayerTwo = !isPlayerTwo; // Switch players
 		}
 	}
+
+	setColour(36);
+	std::cout << "\n\tPlayer 1's Score: " << playerBankedScores[0];
+	std::cout << "\n\tPlayer 2's Score: " << playerBankedScores[1];
+	std::cout << '\n';
+	resetColour();
 }
 
 int main()
