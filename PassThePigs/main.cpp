@@ -95,7 +95,7 @@ public:
 
 	state getPigStates()
 	{
-		int roll{ Random::get(1, 101) };
+		int roll{ Random::get(1, 100) };
 
 		// Check for sider
 		if (isInArray(m_leftSide, roll))
@@ -202,7 +202,7 @@ public:
 
 					score += getScore(pigA);
 				}
-				else if (pigB != leftsider && pigB != rightsider)
+				if (pigB != leftsider && pigB != rightsider)
 				{
 					setColour(33);
 					std::cout << "You rolled a " << getPigStateNames(pigB) << "!\n";
@@ -238,7 +238,7 @@ private:
 		96
 	};
 	constexpr static std::array<int, 5> m_oinker{
-		97, 98, 99, 100, 101
+		97, 98, 99, 100
 	};
 
 	template <std::size_t N>
