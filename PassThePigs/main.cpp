@@ -95,7 +95,7 @@ public:
 
 	state getPigStates()
 	{
-		int roll{ Random::get(1, 22) };
+		int roll{ Random::get(1, 101) };
 
 		// Check for sider
 		if (isInArray(m_leftSide, roll))
@@ -170,14 +170,6 @@ public:
 
 				score += getScore(doubleLeaningJowler);
 				return score;
-
-			case oinker:
-				setColour(31);
-				std::cout << "You rolled an " << getPigStateNames(oinker) << "!\n";
-				resetColour();
-
-				score += getScore(oinker);
-				return score;
 			}
 		}
 		else
@@ -191,9 +183,18 @@ public:
 				score += getScore(pigOut);
 				return score;
 			}
+			else if (pigA == oinker || pigB == oinker)
+			{
+				setColour(31);
+				std::cout << "You rolled an " << getPigStateNames(oinker) << "!\n";
+				resetColour();
+
+				score += getScore(oinker);
+				return score;
+			}
 			else
 			{
-				if (pigA != leftsider && pigA != rightsider && pigA != oinker)
+				if (pigA != leftsider && pigA != rightsider)
 				{
 					setColour(33);
 					std::cout << "You rolled a " << getPigStateNames(pigA) << "!\n";
@@ -201,19 +202,13 @@ public:
 
 					score += getScore(pigA);
 				}
-				else if (pigB != leftsider && pigB != rightsider && pigB != oinker)
+				else if (pigB != leftsider && pigB != rightsider)
 				{
 					setColour(33);
 					std::cout << "You rolled a " << getPigStateNames(pigB) << "!\n";
 					resetColour();
 
 					score += getScore(pigB);
-				}
-				else
-				{
-					setColour(33);
-					std::cout << "You rolled nothing!\n";
-					resetColour();
 				}
 
 				return score;
@@ -222,13 +217,29 @@ public:
 	}
 
 private:
-	constexpr static std::array<int, 5> m_rightSide{ 1, 2, 3, 4, 5 };
-	constexpr static std::array<int, 5> m_leftSide{ 6, 7, 8, 9, 10 };
-	constexpr static std::array<int, 4> m_trotter{ 11, 12, 13, 14 };
-	constexpr static std::array<int, 4> m_razorback{ 15, 16, 17, 18 };
-	constexpr static std::array<int, 2> m_snouter{ 19, 20 };
-	constexpr static std::array<int, 1> m_leaningJowler{ 21 };
-	constexpr static std::array<int, 1> m_oinker{ 22 };
+	constexpr static std::array<int, 29> m_rightSide{
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+		16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29
+	};
+	constexpr static std::array<int, 29> m_leftSide{
+		30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
+		45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58
+	};
+	constexpr static std::array<int, 15> m_razorback{
+		59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73
+	};
+	constexpr static std::array<int, 15> m_trotter{
+		74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88
+	};
+	constexpr static std::array<int, 7> m_snouter{
+		89, 90, 91, 92, 93, 94, 95
+	};
+	constexpr static std::array<int, 1> m_leaningJowler{
+		96
+	};
+	constexpr static std::array<int, 5> m_oinker{
+		97, 98, 99, 100, 101
+	};
 
 	template <std::size_t N>
 	bool isInArray(const std::array<int, N>& arr, int value) const
@@ -349,7 +360,7 @@ void playGame()
 					isPlayerTwo = !isPlayerTwo; // Switch players
 					continue;
 				}
-				else if (pigA == PigState::oinker && pigB == PigState::oinker)
+				else if (pigA == PigState::oinker || pigB == PigState::oinker)
 				{
 					setColour(31);
 					std::cout << "Your banked score is now 0. Your turn is over.\n\n";
