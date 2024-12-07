@@ -263,8 +263,7 @@ bool getRoll()
 		}
 		else
 		{
-			std::cout << "Invalid input. Try again.";
-			ignoreLine();
+			std::cout << "Invalid input. Try again.\n";
 		}
 	}
 }
