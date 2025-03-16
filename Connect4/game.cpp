@@ -304,7 +304,7 @@ public:
 
 		if (checkWin(humanPlayer))
 		{
-			score = -1000000;
+			score = -1000002;
 			Transposition::store(hash, score, Transposition::ScoreType::Exact, depth);
 			return score;
 		}
@@ -378,27 +378,32 @@ public:
 				if (cell != Config::EMPTY)
 					++filledCells;
 
-		int depth // Tweak values if AI too slow
+		int maxDepth // Tweak values if AI too slow
 		{ 
-			(filledCells < 2)  ? 7 :
-			(filledCells < 7)  ? 9 :
+			(filledCells < 2) ? 7 :
+			(filledCells < 7) ? 9 :
 			(filledCells < 10) ? 10 :
 			(filledCells < 12) ? 12 :
 			(filledCells < 16) ? 14 :
 			(filledCells < 22) ? 18 : 26
 		};
-		for (int col : getOrderedMoves(aiPlayer, humanPlayer))
-		{
-			makeMove(col, aiPlayer);
-			int score = minimax(depth, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), false, aiPlayer, humanPlayer);
-			undoMove(col);
 
-			if (score > bestScore)
+		for (int depth{ 1 }; depth <= maxDepth; ++depth)
+		{
+			for (int col : getOrderedMoves(aiPlayer, humanPlayer))
 			{
-				bestScore = score;
-				bestMove = col;
+				makeMove(col, aiPlayer);
+				int score = minimax(depth, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), false, aiPlayer, humanPlayer);
+				undoMove(col);
+
+				if (score > bestScore)
+				{
+					bestScore = score;
+					bestMove = col;
+				}
 			}
 		}
+
 		return bestMove;
 	}
 };
