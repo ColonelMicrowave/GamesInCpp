@@ -20,7 +20,7 @@ namespace Transposition
 		{
 			for (int cell{ 0 }; cell < Config::ROWS * Config::COLS; ++cell)
 			{
-				zobristTable[player][cell] = Random::get(0, std::numeric_limits<uint64_t>::max());
+				zobristTable[player][cell] = Random::get(static_cast<uint64_t>(0), std::numeric_limits<uint64_t>::max());
 			}
 		}
 	}
