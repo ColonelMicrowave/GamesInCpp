@@ -50,7 +50,7 @@ std::pair<int, int> getRange()
 
 int binarySearch(int low, int high)
 {
-	return (low + high) / 2;
+	return (low + ((high - low) / 2));
 }
 
 int getUserResponse(int guess)
