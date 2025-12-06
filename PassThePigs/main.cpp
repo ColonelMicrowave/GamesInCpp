@@ -21,6 +21,20 @@ void resetColour()
 	std::cout << "\033[0m";
 }
 
+void printScoreBar(bool isPlayerTwo, int score)
+{
+	const int barWidth{ 20 };
+	double ratio{ static_cast<double>(score) / 100 };
+	int filled{ static_cast<int>(ratio * barWidth) };
+
+	std::cout << (isPlayerTwo ? "Player Two" : "Player One") << ": [";
+	for (int i{ 0 }; i < filled; ++i) 
+		std::cout << '#';
+	for (int i{ filled }; i < barWidth; ++i)
+		std::cout << '.';
+	std::cout << "] - " << score << "/100\n";
+}
+
 // Main game logic here:
 class PigState
 {
@@ -237,7 +251,7 @@ private:
 	constexpr static std::array<int, 1> m_leaningJowler{
 		96
 	};
-	constexpr static std::array<int, 5> m_oinker{
+	constexpr static std::array<int, 4> m_oinker{
 		97, 98, 99, 100
 	};
 
@@ -258,7 +272,7 @@ bool getRoll()
 
 		if (input.empty())
 		{
-			std::cout << "Rolling the pigs...\n";
+			std::cout << "Rolling the pigs...\n\n";
 			return true;
 		}
 		else
@@ -331,9 +345,11 @@ void playGame()
 
 	while (!hasPlayerWon(playerBankedScores))
 	{
-		setColour(35);
-		std::cout << "\n\tPlayer One's Score: " << playerBankedScores[0] << '\n';
-		std::cout << "\tPlayer Two's Score: "   << playerBankedScores[1] << "\n\n";
+		setColour(95);
+		std::cout << '\n';
+		printScoreBar(false, playerBankedScores[0]);
+		printScoreBar(true, playerBankedScores[1]);
+		std::cout << '\n';
 		resetColour();
 
 		setColour(36);
@@ -368,6 +384,7 @@ void playGame()
 					playerBankedScores[isPlayerTwo] = 0;
 					currentPlayerScore = 0;
 					isPlayerTwo = !isPlayerTwo; // Switch players
+
 					continue;
 				}
 				else
