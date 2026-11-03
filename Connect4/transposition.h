@@ -1,12 +1,11 @@
 #ifndef TRANSPOSITION_H
 #define TRANSPOSITION_H
 
-#include <vector>
 #include <cstdint>
 
 namespace Transposition
 {
-	enum class ScoreType
+	enum class ScoreType : std::uint8_t
 	{
 		Exact,
 		LowerBound,
@@ -15,22 +14,28 @@ namespace Transposition
 
 	struct TableEntry
 	{
+		std::uint64_t key{};       // full hash, to detect index collisions
 		int score{};
-		int depth{};
+		std::int8_t depth{ -1 };   // -1 = empty slot
 		ScoreType type{};
+		std::int8_t bestMove{ -1 }; // best column found at this node, -1 if none
 	};
 
-	// Initialise the Zobrist table
+	// Initialise the Zobrist keys and allocate the table (safe to call more than once)
 	void initialiseZobrist();
 
-	// Compute the Zobrist hash for the current board state
-	uint64_t computeHash(const std::vector<std::vector<char>>& board);
+	// Remove every entry from the transposition table
+	void clear();
 
-	// Check if the current hash is in the transposition table
-	bool lookup(uint64_t hash, int& score, int alpha, int beta, int depth);
+	// Zobrist key for a piece of the given player (0 or 1) at (row, col).
+	// XOR it into the hash when the piece is placed and again when it is removed.
+	std::uint64_t pieceKey(int player, int row, int col);
 
-	// Store a score in the transposition table for a given hash
-	void store(uint64_t hash, int score, ScoreType type, int depth);
+	// Copy the entry for this hash into `out`. Returns false if there is none.
+	bool probe(std::uint64_t hash, TableEntry& out);
+
+	// Store a result for this hash
+	void store(std::uint64_t hash, int depth, int score, ScoreType type, int bestMove);
 }
 
 #endif
