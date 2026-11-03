@@ -1,85 +1,69 @@
-#include <unordered_map>
+#include <array>
+#include <cstdint>
 #include <limits>
-#include <iostream>
+#include <vector>
 #include "random.h"
 #include "transposition.h"
 #include "config.h"
 
 namespace
 {
-	std::vector<std::vector<uint64_t>> zobristTable{};
-	std::unordered_map<uint64_t, Transposition::TableEntry> transpositionTable{};
+	// 2^21 entries * 16 bytes = 32 MB. Must be a power of two.
+	constexpr std::size_t TABLE_SIZE{ std::size_t{ 1 } << 21 };
+
+	std::array<std::array<std::uint64_t, Config::CELLS>, 2> zobristTable{};
+	std::vector<Transposition::TableEntry> transpositionTable{};
+	bool initialised{ false };
+
+	Transposition::TableEntry& slotFor(std::uint64_t hash)
+	{
+		return transpositionTable[hash & (TABLE_SIZE - 1)];
+	}
 }
 
 namespace Transposition
 {
 	void initialiseZobrist()
 	{
-		zobristTable.resize(2, std::vector<uint64_t>(Config::ROWS * Config::COLS));
-		for (int player{ 0 }; player < 2; ++player)
-		{
-			for (int cell{ 0 }; cell < Config::ROWS * Config::COLS; ++cell)
-			{
-				zobristTable[player][cell] = Random::get(static_cast<uint64_t>(0), std::numeric_limits<uint64_t>::max());
-			}
-		}
+		if (initialised)
+			return;
+
+		for (auto& playerKeys : zobristTable)
+			for (auto& key : playerKeys)
+				key = Random::get(std::uint64_t{ 0 }, std::numeric_limits<std::uint64_t>::max());
+
+		transpositionTable.assign(TABLE_SIZE, TableEntry{});
+		initialised = true;
 	}
 
-	uint64_t computeHash(const std::vector<std::vector<char>>& board)
+	void clear()
 	{
-		uint64_t hash{ 0 };
-		for (int row{ 0 }; row < Config::ROWS; ++row)
-		{
-			for (int col{ 0 }; col < Config::COLS; ++col)
-			{
-				if (board[row][col] == Config::PLAYER1)
-					hash ^= zobristTable[0][row * Config::COLS + col];
-				else if (board[row][col] == Config::PLAYER2)
-					hash ^= zobristTable[1][row * Config::COLS + col];
-			}
-		}
-		return hash;
+		transpositionTable.assign(TABLE_SIZE, TableEntry{});
 	}
 
-	bool lookup(uint64_t hash, int& score, int alpha, int beta, int depth)
+	std::uint64_t pieceKey(int player, int row, int col)
 	{
-		auto it{ transpositionTable.find(hash) };
-		if (it != transpositionTable.end())
-		{
-			const TableEntry& entry{ it->second };
-
-			if (entry.depth >= depth)
-			{
-				if (entry.type == ScoreType::Exact)
-				{
-					score = entry.score;
-					return true;
-				}
-				else if (entry.type == ScoreType::LowerBound && entry.score > alpha)
-				{
-					alpha = entry.score;
-				}
-				else if (entry.type == ScoreType::UpperBound && entry.score < beta)
-				{
-					beta = entry.score;
-				}
-				if (alpha >= beta)
-				{
-					score = entry.score;
-					return true;
-				}
-			}
-		}
-		return false;
+		return zobristTable[player][row * Config::COLS + col];
 	}
 
-	void store(uint64_t hash, int score, ScoreType type, int depth)
+	bool probe(std::uint64_t hash, TableEntry& out)
 	{
-		auto it{ transpositionTable.find(hash) };
+		const TableEntry& entry{ slotFor(hash) };
+		if (entry.depth < 0 || entry.key != hash)
+			return false;
+		out = entry;
+		return true;
+	}
 
-		if (it == transpositionTable.end() || it->second.depth < depth)
-		{
-			transpositionTable[hash] = { score, depth, type };
-		}
+	void store(std::uint64_t hash, int depth, int score, ScoreType type, int bestMove)
+	{
+		TableEntry& entry{ slotFor(hash) };
+
+		// Overwrite an entry for a different position (it's probably from an older search).
+		// For the same position, only overwrite with an equal or deeper search.
+		if (entry.key == hash && entry.depth > depth)
+			return;
+
+		entry = { hash, score, static_cast<std::int8_t>(depth), type, static_cast<std::int8_t>(bestMove) };
 	}
 }
