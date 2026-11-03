@@ -3,11 +3,12 @@
 
 namespace Config
 {
-	const int ROWS{ 6 };
-	const int COLS{ 7 };
-	const char EMPTY{ '.' };
-	const char PLAYER1{ 'X' };
-	const char PLAYER2{ 'O' };
+	inline constexpr int ROWS{ 6 };
+	inline constexpr int COLS{ 7 };
+	inline constexpr int CELLS{ ROWS * COLS };
+	inline constexpr char EMPTY{ '.' };
+	inline constexpr char PLAYER1{ 'X' };
+	inline constexpr char PLAYER2{ 'O' };
 }
 
 #endif
